@@ -115,3 +115,229 @@ If(
 );
 //Send excel file data to powerautomate
 
+//Quiz
+**Button click**
+// Create a collection named "QnACollection" with multiple-choice questions
+ClearCollect(
+    QnACollection,
+    Shuffle(
+        [
+            {
+                Question: "What is PowerApps?",
+                Options: [
+                    "A platform for creating business applications",
+                    "A social media platform",
+                    "A video game"
+                ],
+                CorrectAnswer: "A platform for creating business applications"
+            },
+            {
+                Question: "What are the primary components of a PowerApp?",
+                Options: [
+                    "Screens",
+                    "Controls",
+                    "Data sources",
+                    "All of the above"
+                ],
+                CorrectAnswer: "All of the above"
+            },
+            {
+                Question: "How can you create a new PowerApp?",
+                Options: [
+                    "Using PowerApps Studio",
+                    "Sending an email",
+                    "Writing code in Notepad"
+                ],
+                CorrectAnswer: "Using PowerApps Studio"
+            },
+            {
+                Question: "What is a Gallery in PowerApps?",
+                Options: [
+                    "A collection of images",
+                    "A way to display data",
+                    "A type of dance"
+                ],
+                CorrectAnswer: "A way to display data"
+            },
+            {
+                Question: "How can you filter and sort data in a Gallery?",
+                Options: [
+                    "Using the Filter function",
+                    "Using a magic wand",
+                    "Shouting at the screen"
+                ],
+                CorrectAnswer: "Using the Filter function"
+            },
+            {
+                Question: "What are the different types of Galleries in PowerApps?",
+                Options: [
+                    "Square Galleries",
+                    "Vertical Galleries",
+                    "Round Galleries"
+                ],
+                CorrectAnswer: "Vertical Galleries"
+            },
+            {
+                Question: "How can you navigate between screens in a PowerApp?",
+                Options: [
+                    "Jumping",
+                    "Using the Navigate function",
+                    "Closing your eyes and hoping for the best"
+                ],
+                CorrectAnswer: "Using the Navigate function"
+            },
+            {
+                Question: "What is the difference between Canvas Apps and Model-Driven Apps in PowerApps?",
+                Options: [
+                    "Canvas Apps let you draw on the screen",
+                    "Model-Driven Apps are based on data",
+                    "Canvas Apps are for artists"
+                ],
+                CorrectAnswer: "Model-Driven Apps are based on data"
+            },
+            {
+                Question: "Can you integrate PowerApps with other Microsoft 365 services?",
+                Options: [
+                    "No, it's a standalone tool",
+                    "Yes, with a magic wand",
+                    "Yes, with other Microsoft 365 services"
+                ],
+                CorrectAnswer: "Yes, with other Microsoft 365 services"
+            },
+            {
+                Question: "How can you share a PowerApp with others?",
+                Options: [
+                    "Yell it out the window",
+                    "Publish and share a link",
+                    "Send a carrier pigeon"
+                ],
+                CorrectAnswer: "Publish and share a link"
+            },
+            {
+                Question: "____is to develop unique, code-free desktop and mobile applications that use your data.",
+                Options: [
+                    "Flow",
+                    "Power BI",
+                    "Power Automate",
+                    "Power Apps"
+                ],
+                CorrectAnswer: "Power Apps"
+            },
+            {
+                Question: "Which platform-as-a-service from Microsoft is the most well-known?",
+                Options: [
+                    "Power Virtual Agents",
+                    "Power BI",
+                    "Power Automate",
+                    "Power Apps"
+                ],
+                CorrectAnswer: "Power Apps"
+            },
+            {
+                Question: "Are Powerapps being used to modernize app development in the market?",
+                Options: [
+                    "Yes",
+                    "No"
+                ],
+                CorrectAnswer: "Yes"
+            }
+        ]
+    )
+);
+Clear(colSelectedAnswer);
+Navigate(QuizScreen,ScreenTransition.Fade)
+**Button click**
+
+**Gallery**
+FirstN(QnACollection,chooseQuestionsCount.Selected.Value)
+**Gallery**
+
+**How many questions to attend**
+Dropdown: Sequence(CountRows(QnACollection))
+**How many questions to attend**
+
+**What is the pass score**
+Dropdown: Sequence(chooseQuestionsCount.Selected.Value)
+**What is the pass score**
+
+**Pass score label**
+"Your Score: " & CountRows(colSelectedAnswer) & "/" & chooseQuestionsCount.Selected.Value & " " & If(
+    CountRows(colSelectedAnswer) < passScoreCount.Selected.Value,
+    //RoundDown(CountRows(Gallery1.AllItems) / 2, 0),
+    "Fail",
+    "Pass"
+)
+**Pass score label**
+
+**Add question screen**
+Clear(quizOptions);
+If(
+    questionTextInput.Text <> "" && optionTextInput1.Text <> "" && optionTextInput2.Text <> "" && crrtAnswerTextInput.Text <> "",
+    If(
+        optionTextInput1.Text <> "",
+        Collect(
+            quizOptions,
+            optionTextInput1.Text
+        )
+    );
+    If(
+        optionTextInput2.Text <> "",
+        Collect(
+            quizOptions,
+            optionTextInput2.Text
+        )
+    );
+    If(
+        optionTextInput3.Text <> "",
+        Collect(
+            quizOptions,
+            optionTextInput3.Text
+        )
+    );
+    If(
+        optionTextInput4.Text <> "",
+        Collect(
+            quizOptions,
+            optionTextInput4.Text
+        )
+    );
+    Patch(
+        QnACollection,
+        Defaults(QnACollection),
+        {
+            Question: questionTextInput.Text,
+            Options: quizOptions,
+            CorrectAnswer: crrtAnswerTextInput.Text
+        }
+    );
+    Reset(questionTextInput);
+    Reset(optionTextInput1);
+    Reset(optionTextInput2);
+    Reset(optionTextInput3);
+    Reset(optionTextInput4);
+    Reset(crrtAnswerTextInput);
+    Navigate(
+        QuizScreen,
+        ScreenTransition.Cover
+    ),
+    Notify(
+        "Fill mandatory field to submit your question",
+        NotificationType.Error
+    )
+)
+**Add question screen**
+
+**Submit button**
+Clear(colSelectedAnswer);
+ForAll(
+    Gallery1.AllItems,
+    If(
+        Radio1.Selected.Value = ThisRecord.CorrectAnswer,
+        Collect(
+            colSelectedAnswer,
+            Radio1.Selected.Value
+        )
+    )
+);
+**Sumbit button**
+//Quiz
