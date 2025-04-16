@@ -1,0 +1,18 @@
+//Avoid or prevents user to enter +, - and space in PowerApps input text box
+Default:
+Concat(CharCollection,Value)
+
+Onchange:
+ClearCollect(
+    CharCollection,
+    ForAll(
+        Sequence(Len(TextInput1.Text)),
+        Mid(
+            TextInput1.Text,
+            Value,
+            1
+        )
+    )
+);
+RemoveIf(CharCollection, Value = "+" || Value = " " || Value = "-");
+//Avoid or prevents user to enter +, - and space in PowerApps input text box
