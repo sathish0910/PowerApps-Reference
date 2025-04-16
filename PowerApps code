@@ -16,3 +16,102 @@ ClearCollect(
 );
 RemoveIf(CharCollection, Value = "+" || Value = " " || Value = "-");
 //Avoid or prevents user to enter +, - and space in PowerApps input text box
+
+//Send data and download into csv format
+Set(
+    refreshPage,
+    true
+);
+Clear(colDateRangeExport);
+ForAll(
+    Filter(
+        colSPListItems,
+        AllocationDate >= StartDatePicker.SelectedDate && AllocationDate <= EndDatePicker.SelectedDate
+    ),
+    Collect(
+        colDateRangeExport,
+        {
+            'Emp Name': ThisRecord.'Emp Name',
+            'GFS Name': ThisRecord.'GFS Name',
+            'GFS Code': ThisRecord.'GFS Code',
+            Grade: ThisRecord.Grade.Value,
+            Allocation: ThisRecord.Allocation & "%",
+            'Allocation Date': ThisRecord.AllocationDate,
+            FTE: ThisRecord.Allocation / 100,
+            Email: ThisRecord.'Emp Email'
+        }
+    )
+);
+Patch(
+    colDateRangeExport,
+    Defaults(colDateRangeExport),
+    {
+        'Emp Name': "",
+        'GFS Name': "",
+        'GFS Code': 0,
+        Grade: "",
+        Allocation: "",
+        'Allocation Date': Now(),
+        FTE: Sum(
+            colDateRangeExport,
+            Allocation
+        ),
+        Email: ""
+    }
+);
+If(
+    CountRows(colDateRangeExport) = 0,
+    Notify(
+        "No data to download",
+        NotificationType.Warning
+    ),
+    Launch(
+        'SmartForecast-ExporttoExcel'.Run(
+            JSON(
+                colDateRangeExport,
+                JSONFormat.IncludeBinaryData
+            ),
+            "SRA_" & Text(StartDatePicker.SelectedDate) & "_To_" & Text(EndDatePicker.SelectedDate) & ".csv"
+        ).filelink
+    )
+);
+Reset(StartDatePicker);
+Reset(EndDatePicker);
+Set(
+    refreshPage,
+    false
+);
+//Send data and download into csv format
+
+//Search, filter in gallery
+Search(
+    Filter(
+        colCurrentSPListItems,
+        IsBlank(dpdwnGrade.SelectedItems) || IsEmpty(dpdwnGrade.SelectedItems) || Grade.Value = dpdwnGrade.Selected.Value,
+        IsBlank(dpdwnAllocation.SelectedItems) || IsEmpty(dpdwnAllocation.SelectedItems) || (dpdwnAllocation.Selected.Value = "0%" && Value(Allocation) = 0) || (dpdwnAllocation.Selected.Value = "1% to 50%" && Value(Allocation) > 0 && Value(Allocation) <= 50) || (dpdwnAllocation.Selected.Value = "51% to 99%" && Value(Allocation) > 50 && Value(Allocation) < 100) || (dpdwnAllocation.Selected.Value = "100%" && Value(Allocation) = 100),
+        Status.Value = "Active",
+        IsBlank(dpdwnLocation.SelectedItems) || IsEmpty(dpdwnLocation.SelectedItems) || Outsourcing.Value = dpdwnLocation.Selected.Value
+    ),
+    txtSearchName.Text,
+    'Emp Name'
+)
+//Search, filter in gallery
+
+//Send excel file data to powerautomate
+Set(
+    varFlowStatus,
+    'SmartForecast-ExcelUpload'.Run(
+        {
+            file: {
+                contentBytes: Last(AttachmentsDataCard.Attachments).Value,
+                name: Last(AttachmentsDataCard.Attachments).Name
+            }
+        }
+    ).output
+);
+If(
+    varFlowStatus = "success" || varFlowStatus = "Success",
+    Reset(AttachmentsDataCard)
+);
+//Send excel file data to powerautomate
+
